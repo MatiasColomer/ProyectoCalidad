@@ -1,0 +1,53 @@
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px; 
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+body.light-mode {
+    background-color: #fff;
+    color: #000;
+}
+
+body.light-mode .list-group-item {
+    background-color: #f8f9fa;
+    color: #000;
+    border-color: #f8f9fa;
+}
+
+body.light-mode .list-group-item:hover {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+}
+
+body.light-mode .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff; 
+}
+
+body.light-mode .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}

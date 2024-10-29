@@ -1,0 +1,180 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Productos</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+    <script>
+        function incrementStock(input) {
+            input.value = parseInt(input.value) + 1; // Incrementa en 1
+        }
+
+        function decrementStock(input) {
+            if (input.value > 0) {
+                input.value = parseInt(input.value) - 1; // Decrementa en 1
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container-fluid bg-light p-3">
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4>Mi Tienda Online</h4>
+            </div>
+            <div>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">Nuevo Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h2>Productos Existentes</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Foto</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>${{ product.price }}</td>
+                    <td>{{ product.description }}</td>
+                    <td>{{ product.category.name }}</td>
+                    <td>
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="decrementStock(this.nextElementSibling)">-</button>
+                                <input type="number" name="stock" value="{{ product.stock }}" min="0" required style="width: 60px; margin: 0 5px;">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="incrementStock(this.previousElementSibling)">+</button>
+                                <button type="submit" name="update_stock" class="btn btn-secondary btn-sm ml-2">Actualizar</button>
+                            </div>
+                        </form>
+                    </td>
+                    <td><img src="{{ product.photo.url }}" alt="{{ product.name }}" class="img-thumbnail" style="max-height: 100px;"></td>
+                    <td>
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <button type="submit" name="delete_product" class="btn btn-danger">Eliminar</button>
+                        </form>
+                        <button class="btn btn-warning" data-toggle="modal" data-target="#editProductModal{{ product.id }}">Editar</button>
+                    </td>
+                </tr>
+
+                <!-- Modal para Editar Producto -->
+                <div class="modal fade" id="editProductModal{{ product.id }}" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel{{ product.id }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editProductModalLabel{{ product.id }}">Editar Producto</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <div class="form-group">
+                                        <label for="id_name">Nombre del Producto:</label>
+                                        <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_price">Precio:</label>
+                                        <input type="number" name="price" class="form-control" value="{{ product.price }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_description">Descripción:</label>
+                                        <textarea name="description" class="form-control" required>{{ product.description }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_category">Categoría:</label>
+                                        <select name="category" class="form-control">
+                                            {% for category in categories %}
+                                                <option value="{{ category.id }}" {% if category.id == product.category.id %}selected{% endif %}>{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_photo">Foto:</label>
+                                        <input type="file" name="photo" class="form-control">
+                                    </div>
+                                    <button type="submit" name="edit_product" class="btn btn-primary">Guardar Cambios</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal para Agregar Producto -->
+<div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Agregar Nuevo Producto</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_name">Nombre del Producto:</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_price">Precio:</label>
+                        <input type="number" name="price" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_description">Descripción:</label>
+                        <textarea name="description" class="form-control" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_category">Categoría:</label>
+                        <select name="category" class="form-control" required>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_stock">Stock:</label>
+                        <input type="number" name="stock" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_photo">Foto:</label>
+                        <input type="file" name="photo" class="form-control" required>
+                    </div>
+                    <button type="submit" name="add_product" class="btn btn-primary">Agregar Producto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
